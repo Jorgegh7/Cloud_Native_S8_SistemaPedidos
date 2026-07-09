@@ -1,6 +1,7 @@
 package com.duoc.sistema_pedidos.controller;
 
 import com.duoc.sistema_pedidos.model.GuiaDespacho;
+import com.duoc.sistema_pedidos.service.GuiaDespachoProductorService;
 import com.duoc.sistema_pedidos.service.contrato.GuiaDespachoS3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 public class GuiaDespachoS3Controller {
 
     private final GuiaDespachoS3Service guiaDespachoS3Service;
+    private final GuiaDespachoProductorService guiaDespachoProductorService;
 
     @GetMapping("/{id}/generar")
     public ResponseEntity<?> generarGuia(@PathVariable Long id) {
@@ -32,8 +34,10 @@ public class GuiaDespachoS3Controller {
     public ResponseEntity<?> subirGuia(@PathVariable Long id) {
         try {
             guiaDespachoS3Service.subirGuia(id);
-            return ResponseEntity.ok("Guía #" + id + " subida a S3");
+            guiaDespachoProductorService.enviarExito(id, "GUIA-" + id);
+            return ResponseEntity.ok("Guía #" + id + " subida a S3 y enviada a la cola");
         } catch (RuntimeException e) {
+            guiaDespachoProductorService.enviarError(id, "GUIA-" + id, e.getMessage());
             return ResponseEntity.status(404).body(e.getMessage());
         }
     }
@@ -55,8 +59,10 @@ public class GuiaDespachoS3Controller {
     public ResponseEntity<?> modificarGuia(@PathVariable Long id, @RequestBody GuiaDespacho guiaDespacho) {
         try {
             guiaDespachoS3Service.modificarGuia(id, guiaDespacho);
-            return ResponseEntity.ok("Guía #" + id + " actualizada y regenerada en S3");
+            guiaDespachoProductorService.enviarExito(id, guiaDespacho.getNumeroGuia());
+            return ResponseEntity.ok("Guía #" + id + " actualizada, regenerada en S3 y enviada a la cola");
         } catch (RuntimeException e) {
+            guiaDespachoProductorService.enviarError(id, guiaDespacho.getNumeroGuia(), e.getMessage());
             return ResponseEntity.status(404).body(e.getMessage());
         }
     }
@@ -65,8 +71,10 @@ public class GuiaDespachoS3Controller {
     public ResponseEntity<?> borrarGuia(@PathVariable Long id) {
         try {
             guiaDespachoS3Service.borrarGuia(id);
-            return ResponseEntity.ok("Guía #" + id + " borrada de S3");
+            guiaDespachoProductorService.enviarExito(id, "GUIA-" + id);
+            return ResponseEntity.ok("Guía #" + id + " borrada de S3 y enviada a la cola");
         } catch (RuntimeException e) {
+            guiaDespachoProductorService.enviarError(id, "GUIA-" + id, e.getMessage());
             return ResponseEntity.status(404).body(e.getMessage());
         }
     }
