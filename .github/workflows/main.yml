@@ -55,5 +55,8 @@ jobs:
               -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
               -e AWS_SESSION_TOKEN=${{ secrets.AWS_SESSION_TOKEN }} \
               -e AWS_REGION=us-east-1 \
+              -e AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }} \
+              -e AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }} \
+              -e AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }} \
               ${{ secrets.DOCKERHUB_USERNAME }}/sistema-pedidos:latest
           EOF
